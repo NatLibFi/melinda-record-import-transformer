@@ -28,7 +28,36 @@
 
 'use strict';
 
-import noop from './noop';
+import validateFactory from '@natlibfi/marc-record-validators-melinda';
+import { checkEnv, registerSignalHandlers, startHealthCheckService, startTransformation } from './utils';
 
-//export { noop };
-noop();
+export default async function() {
+
+  registerSignalHandlers();
+  checkEnv();
+
+  const stopHealthCheckService = startHealthCheckService();
+
+  try {
+    const validate = validateFactory({
+      validators: ['double-commas'],
+      failOnError: false,
+      fix: true
+    });
+
+    await startTransformation(transform);
+    stopHealthCheckService();
+  } catch (error) {
+    stopHealthCheckService();
+    throw error;
+  }
+
+  // No-op
+  async function transform(blob) {
+    // This would contain the actual records
+    const records = [];
+    // This would be called for actual records
+    //return records.map(validate);
+    return records;
+  }
+}
